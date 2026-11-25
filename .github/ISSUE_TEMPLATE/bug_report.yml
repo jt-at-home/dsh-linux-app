@@ -1,0 +1,94 @@
+name: Bug report
+description: Report a problem with dsh-linux-app
+title: "[bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing. This is an unofficial community project, not affiliated
+        with DeepSeek.
+
+        **Redact secrets before pasting logs** — launch tokens appear as
+        `?token=…` and API keys must never be included.
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: From the About dialog, or `dpkg -s dsh-linux-app | grep Version`
+      placeholder: "0.6.5"
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: Install format
+      options:
+        - deb
+        - AppImage
+        - running from source
+    validations:
+      required: true
+  - type: input
+    id: distro
+    attributes:
+      label: Distribution and version
+      placeholder: "Zorin OS 18.1"
+    validations:
+      required: true
+  - type: input
+    id: desktop
+    attributes:
+      label: Desktop environment and session type
+      placeholder: "GNOME 48, Wayland (or KDE Plasma, X11)"
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node version and path
+      description: Output of `node -v` and `command -v node`
+      placeholder: "v24.22.3 at ~/.nvm/versions/node/v24.22.3/bin/node"
+    validations:
+      required: true
+  - type: input
+    id: dsh
+    attributes:
+      label: dsh version and path
+      description: Output of `dsh --version` and `command -v dsh`
+      placeholder: "0.2.2-rc.5 at ~/.nvm/versions/node/v24.22.3/bin/dsh"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead? Screenshots help.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Launch ...
+        2. Click ...
+        3. See ...
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        `app.log` and `host.log` live in `~/.local/state/dsh-linux-app`.
+        Paste the last ~100 lines of each, with tokens redacted.
+      render: shell
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues for this problem.
+          required: true
+        - label: I removed tokens, API keys and other secrets from the logs.
+          required: true
+        - label: I understand this is an unofficial project.
+          required: true
