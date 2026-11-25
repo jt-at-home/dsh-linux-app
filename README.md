@@ -63,6 +63,14 @@ If `node -v` still prints v18, an older Node comes first on `PATH`. Ensure nvm
 is loaded (`command -v node` should point inside `~/.nvm/...`), or remove the
 distribution package if nothing else depends on it (`sudo apt remove nodejs`).
 
+**Never use `sudo` with nvm.** `sudo npm` runs a different (system) Node and npm,
+installs outside your nvm prefix, and leaves root-owned files. If npm reports
+`EACCES`, you are not in an nvm shell: open a new terminal or run `nvm use 24`,
+then check `command -v npm` points into `~/.nvm/...`.
+
+NodeSource installs Node and npm system-wide under `/usr`, so its global npm
+installs **do** need `sudo` (or a user prefix — see below).
+
 ### 2. dsh
 
 ```bash
@@ -70,7 +78,43 @@ npm install -g @deepseek-ai/dsh@latest
 dsh --version
 ```
 
+Then confirm the app will find the same pair:
+
+```bash
+command -v node   # ~/.nvm/.../bin/node, or /usr/bin/node
+command -v dsh    # ideally the matching prefix
+node -v           # v24.x
+dsh --version
+npm prefix -g     # the prefix both live under
+```
+
 If npm refuses with an engine error, you are still on Node 18 — go back to step 1.
+
+**Prefer no sudo?** Keep global installs in your home directory instead of
+`/usr`:
+
+```bash
+npm config set prefix "$HOME/.local"
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+npm install -g @deepseek-ai/dsh
+command -v dsh    # ~/.local/bin/dsh
+```
+
+The app searches `~/.local/bin` as well, so this works from the desktop too;
+the Node it runs is the `node` on the app's `PATH`.
+
+**Already installed with sudo?** It can still work — the app uses whatever
+`dsh` it resolves and checks the Node version. To see what it will choose:
+
+```bash
+command -v dsh
+npm prefix -g
+tail -5 ~/.local/state/dsh-linux-app/app.log   # "host: launching …"
+```
+
+If `dsh` lives under a root-owned prefix but resolves to Node 24, it is fine;
+updates will need `sudo` too. To move to a user prefix, remove the system copy
+first (`sudo npm rm -g @deepseek-ai/dsh`) and reinstall as above.
 
 ### 3. pnpm (only for plugins)
 
@@ -242,6 +286,10 @@ Environment overrides: `DSH_LINUX_APP_DSH`, `DSH_LINUX_APP_NODE`,
   Install Node 24 as described in
   [Prerequisites](#prerequisites-both-formats); if several Node installations
   coexist, pin `dshPath`/`nodePath` to the matching pair.
+- **`npm install -g` asks for sudo / `EACCES`.** With nvm this must not happen;
+  the shell is using a system npm. Open a new terminal or `nvm use 24` and check
+  `command -v npm`. With NodeSource, `sudo` is expected (or set a user prefix as
+  described in the prerequisites).
 - **`dsh: command not found` after installing it.** The shell cannot see the
   npm global bin directory — load nvm (`command -v node`) or check
   `npm prefix -g`.
