@@ -134,6 +134,37 @@ async function boot() {
   }
 }
 
+async function requestQuit() {
+  if (quitting) return
+  if (!config.confirmQuit || smoke) {
+    await shutdown(0)
+    return
+  }
+  const options = {
+    type: 'warning',
+    title: 'Quit DeepSeek Harness',
+    message: 'Quit DeepSeek Harness?',
+    detail: 'Running tasks, queued messages and background jobs will be stopped. ' +
+      'Scheduled tasks will not run while the app is closed.',
+    buttons: ['Quit', 'Cancel'],
+    defaultId: 1,
+    cancelId: 1,
+    noLink: true,
+  }
+  const owner = appWindow !== undefined && !appWindow.win.isDestroyed() ? appWindow.win : undefined
+  const { response } = owner === undefined
+    ? await dialog.showMessageBox(options)
+    : await dialog.showMessageBox(owner, options)
+  if (response === 0) {
+    await shutdown(0)
+    return
+  }
+  // Cancelling a close-triggered quit must leave a window to return to.
+  if (appWindow !== undefined && !appWindow.win.isDestroyed() && !appWindow.isVisible()) {
+    appWindow.show()
+  }
+}
+
 async function requestRestart() {
   if (quitting || booting) return
   if (smoke) {
@@ -271,7 +302,7 @@ async function main() {
   app.on('window-all-closed', () => {
     if (quitting) return
     if (config?.closeToTray === true) return
-    void shutdown(0)
+    void requestQuit()
   })
 
   app.on('before-quit', event => {
@@ -318,7 +349,7 @@ async function main() {
     zoomReset: () => appWindow.zoomReset(),
     hide: () => appWindow.hide(),
     restartHost: () => void requestRestart(),
-    quit: () => void shutdown(0),
+    quit: () => void requestQuit(),
     about: () => void showAbout(),
   }
 

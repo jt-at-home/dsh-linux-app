@@ -283,6 +283,7 @@ defaults are used.
 | `trayIcon` | `auto` | `auto`, `light` or `dark` tray variant |
 | `zoom` | `1` | UI zoom factor, 0.5–3 |
 | `closeToTray` | `true` | Hide to tray when available, otherwise minimize (never quits) |
+| `confirmQuit` | `true` | Ask before quitting, warning that running work will stop |
 | `tray` | `true` | Create the tray icon when the desktop supports one |
 | `dshPath` / `nodePath` | `null` | Explicit launchers; otherwise auto-resolved |
 | `workingDirectory` | `null` | Host working directory; defaults to `$HOME` |

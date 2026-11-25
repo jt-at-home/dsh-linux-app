@@ -14,6 +14,7 @@ export const DEFAULTS = Object.freeze({
   window: Object.freeze({ width: 1280, height: 860, x: null, y: null, maximized: false }),
   zoom: 1,
   closeToTray: true,
+  confirmQuit: true,
   tray: true,
   menuBar: 'hidden',
   appMenuButton: true,
@@ -60,6 +61,7 @@ export function normalizeConfig(raw) {
     },
     zoom: number(source.zoom, DEFAULTS.zoom, 0.5, 3),
     closeToTray: boolean(source.closeToTray, DEFAULTS.closeToTray),
+    confirmQuit: boolean(source.confirmQuit, DEFAULTS.confirmQuit),
     tray: boolean(source.tray, DEFAULTS.tray),
     menuBar: legacyMenuBar
       ? 'hidden'

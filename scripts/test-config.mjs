@@ -16,6 +16,7 @@ try {
   assert.equal(created.window.width, DEFAULTS.window.width)
   assert.equal(created.zoom, 1)
   assert.equal(created.closeToTray, true)
+  assert.equal(created.confirmQuit, true)
   assert.equal(created.window.x, null)
   assert.equal(created.window.maximized, false)
   assert.equal(created.menuBar, 'hidden')
