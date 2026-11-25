@@ -130,8 +130,12 @@ resolves `dsh` and its Node explicitly.
 ## Install: AppImage
 
 1. Complete the [prerequisites](#prerequisites-both-formats) above.
-2. Download `DeepSeek-Harness-<version>-x86_64.AppImage` from
-   [Releases](https://github.com/jt-at-home/dsh-linux-app/releases).
+2. Download `DeepSeek-Harness-<version>-x86_64.AppImage` and `SHA256SUMS` from
+   [Releases](https://github.com/jt-at-home/dsh-linux-app/releases), then verify
+   the download:
+   ```bash
+   sha256sum -c SHA256SUMS
+   ```
 3. Make it executable:
    ```bash
    chmod +x DeepSeek-Harness-<version>-x86_64.AppImage
@@ -158,7 +162,8 @@ prompt on first launch.
 ## Install: deb
 
 1. Complete the [prerequisites](#prerequisites-both-formats) above.
-2. Install the package:
+2. Download `dsh-linux-app_<version>_amd64.deb` and `SHA256SUMS`, verify with
+   `sha256sum -c SHA256SUMS`, then install:
    ```bash
    sudo apt install ./dsh-linux-app_<version>_amd64.deb
    ```
