@@ -28,31 +28,130 @@ than another browser tab.
 - Logs rotate at 1 MiB
 - AppImage and deb packaging
 
-## Requirements
+## Prerequisites (both formats)
 
-- `dsh` and a Node version that satisfies its `engines.node` (install with npm or
-  nvm)
-- `pnpm` only if you install or update plugins (see below)
+The app is only the desktop shell: it does **not** bundle Node, `dsh` or `pnpm`.
+Install these first, as the same user that will run the app.
 
-The app does not bundle a runtime. It resolves `dsh` explicitly and pairs it with
-the Node **in the same bin directory**, which matters when it is launched from a
-`.desktop` file: a GUI launch has no nvm on `PATH`. If resolution picks the wrong
-pair, pin it with `DSH_LINUX_APP_DSH=<path/to/dsh>` or `dshPath` in the config.
+### 1. Node.js 24
 
-## Install
+Current `dsh` requires Node **24.9 or newer**. Distribution repositories —
+including Zorin's — ship Node 18, which is too old and produces
+`Node 18 … is too old for this dsh`.
 
-Releases are attached to GitHub Releases as unsigned builds:
+**nvm (recommended; per-user, no sudo for Node):**
 
-| Format | Install / run |
-|---|---|
-| AppImage | `chmod +x DeepSeek-Harness-<version>-x86_64.AppImage` and run it |
-| deb | `sudo apt install ./dsh-linux-app_<version>_amd64.deb` — installs under `/opt/DeepSeek Harness` with a menu entry and `/usr/bin/dsh-linux-app` |
+```bash
+sudo apt update && sudo apt install -y curl git
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.41.0/install.sh | bash
+# open a new terminal so nvm is loaded, then:
+nvm install 24
+nvm alias default 24
+node -v          # must print v24.x
+```
 
-Both still need `dsh` and Node (and pnpm for plugins). The AppImage needs FUSE 2
-on some distributions (`libfuse2t64` on Ubuntu 24.04+); otherwise run it with
-`APPIMAGE_EXTRACT_AND_RUN=1`.
+**NodeSource (system-wide):**
+
+```bash
+sudo apt update && sudo apt install -y curl ca-certificates
+curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
+sudo apt install -y nodejs
+node -v          # must print v24.x
+```
+
+If `node -v` still prints v18, an older Node comes first on `PATH`. Ensure nvm
+is loaded (`command -v node` should point inside `~/.nvm/...`), or remove the
+distribution package if nothing else depends on it (`sudo apt remove nodejs`).
+
+### 2. dsh
+
+```bash
+npm install -g @deepseek-ai/dsh@latest
+dsh --version
+```
+
+If npm refuses with an engine error, you are still on Node 18 — go back to step 1.
+
+### 3. pnpm (only for plugins)
+
+```bash
+npm install -g pnpm@12
+pnpm --version
+```
+
+The app runs `dsh` with the Node in the same npm prefix, so install both with
+the same tool and user. A desktop launch does not read shell profiles; the app
+resolves `dsh` and its Node explicitly.
+
+## Install: AppImage
+
+1. Complete the [prerequisites](#prerequisites-both-formats) above.
+2. Download `DeepSeek-Harness-<version>-x86_64.AppImage` from
+   [Releases](https://github.com/jt-at-home/dsh-linux-app/releases).
+3. Make it executable:
+   ```bash
+   chmod +x DeepSeek-Harness-<version>-x86_64.AppImage
+   ```
+4. Install FUSE 2, which AppImages need to mount themselves:
+   - Zorin 17 / Ubuntu 22.04: `sudo apt install libfuse2`
+   - Zorin 18 / Ubuntu 24.04+: `sudo apt install libfuse2t64`
+
+   Without root, extract instead:
+   ```bash
+   APPIMAGE_EXTRACT_AND_RUN=1 ./DeepSeek-Harness-<version>-x86_64.AppImage
+   ```
+5. Run it:
+   ```bash
+   ./DeepSeek-Harness-<version>-x86_64.AppImage
+   ```
+6. The AppImage does not install a menu entry by itself. Launch it from the
+   file manager or pin it to your dock/taskbar after the first run. Login start
+   is described [below](#enable-login-start).
+
+The build is unsigned, so your desktop may show an "untrusted application"
+prompt on first launch.
+
+## Install: deb
+
+1. Complete the [prerequisites](#prerequisites-both-formats) above.
+2. Install the package:
+   ```bash
+   sudo apt install ./dsh-linux-app_<version>_amd64.deb
+   ```
+   `apt` resolves the GUI libraries; Node, `dsh` and `pnpm` are still required
+   from the prerequisites and are not bundled.
+3. The package installs:
+   - `/opt/DeepSeek Harness/` — application and Electron runtime
+   - `/usr/bin/dsh-linux-app` — command (via update-alternatives)
+   - a **DeepSeek Harness** entry in the application menu
+4. Launch it from the menu, or run `dsh-linux-app`.
+5. Uninstall with `sudo apt remove dsh-linux-app`. Your data in `~/.dsh` and
+   `~/.config/dsh-linux-app` is left untouched.
+
+## Enable login start
+
+Both formats can start hidden in the tray. Create
+`~/.config/autostart/dsh-linux-app.desktop`:
+
+```ini
+[Desktop Entry]
+Type=Application
+Name=DeepSeek Harness
+Exec=/usr/bin/dsh-linux-app --hidden
+Icon=dsh-linux-app
+StartupWMClass=deepseek-harness
+Terminal=false
+X-GNOME-Autostart-enabled=true
+```
+
+For an AppImage, replace `Exec` with the AppImage path followed by `--hidden`.
+GNOME (Zorin) needs the `gnome-shell-extension-appindicator` extension for the
+tray; without a tray the hidden start falls back to showing the window after
+about ten seconds, so the app cannot become unreachable.
 
 ## Run from source
+
+Install the [prerequisites](#prerequisites-both-formats) first.
 
 ```bash
 npm install
@@ -67,32 +166,15 @@ npm run install:autostart  # start hidden in the tray at login
 appears, it retries for about ten seconds while the panel starts and then shows
 the window so the app cannot become unreachable.
 
-### Login start for packaged installs
-
-Point an XDG autostart entry at the installed binary:
-
-```ini
-[Desktop Entry]
-Type=Application
-Name=DeepSeek Harness
-Exec=/usr/bin/dsh-linux-app --hidden
-Icon=dsh-linux-app
-StartupWMClass=deepseek-harness
-Terminal=false
-X-GNOME-Autostart-enabled=true
-```
-
-Save it as `~/.config/autostart/dsh-linux-app.desktop` (for an AppImage, use its
-path). The repo's `scripts/install-autostart.sh` can generate this too, including
-AppImage paths via `DSH_LINUX_APP_LAUNCHER`.
-
 ## Plugins and pnpm
 
 Plugin installs and updates are the one feature that needs software beyond `dsh`
 + Node. The Plugin Market and `dsh plugin` operate on the web profile
 (`~/.dsh/profiles/web`) and call `pnpm` directly. The app does not bundle pnpm.
 
-pnpm 12 is the supported line; verify the setup with:
+Install pnpm with `npm install -g pnpm@12` (step 3 of the
+[prerequisites](#prerequisites-both-formats)); pnpm 12 is the supported line.
+Verify the setup with:
 
 ```bash
 pnpm --version                                  # 12.x
@@ -156,8 +238,16 @@ Environment overrides: `DSH_LINUX_APP_DSH`, `DSH_LINUX_APP_NODE`,
 - **Nothing appears on `npm start`.** The app starts the host first; check
   `~/.local/state/dsh-linux-app/app.log` for `window: loaded visible=…` and
   `host: launching …`. A host failure opens the in-window error page with Retry.
-- **`Node X is too old for this dsh`.** The resolved interpreter is older than
-  the dsh package's `engines.node`; pin `dshPath`/`nodePath` to a matching pair.
+- **`Node X is too old for this dsh`.** You are on Node 18 (the distro package).
+  Install Node 24 as described in
+  [Prerequisites](#prerequisites-both-formats); if several Node installations
+  coexist, pin `dshPath`/`nodePath` to the matching pair.
+- **`dsh: command not found` after installing it.** The shell cannot see the
+  npm global bin directory — load nvm (`command -v node`) or check
+  `npm prefix -g`.
+- **AppImage: `error loading libfuse.so.2`.** Install `libfuse2` (Zorin 17 /
+  Ubuntu 22.04) or `libfuse2t64` (Zorin 18 / Ubuntu 24.04), or run with
+  `APPIMAGE_EXTRACT_AND_RUN=1`.
 - **Closing the window and nothing on screen.** That is hide-to-tray. Reopen from
   the tray menu, or launch the app again. GNOME needs
   `gnome-shell-extension-appindicator` for a tray; without a tray host the second
