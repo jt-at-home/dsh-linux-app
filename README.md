@@ -318,6 +318,11 @@ Environment overrides: `DSH_LINUX_APP_DSH`, `DSH_LINUX_APP_NODE`,
   minute, so an icon can appear once the panel finishes starting.
 - **A second launch does nothing.** The single-instance lock focused the existing
   window; check `pgrep -af dsh-linux-app`.
+- **No tray icon after relaunching.** An older instance is probably still running
+  and simply got focused — closing the window hides or minimizes, it does not
+  quit. Quit it fully from the tray or **⋯ → Quit**, confirm `pgrep -af
+  dsh-linux-app` is empty, then relaunch. A run started with
+  `DSH_LINUX_APP_TRAY_HOST=0` never creates a tray by design.
 - **Plugin Market says "pnpm needs to be set up"** — see
   [Plugins and pnpm](#plugins-and-pnpm).
 - **`crypto/nss_util.cc … NSS error code`** is Chromium complaining about
