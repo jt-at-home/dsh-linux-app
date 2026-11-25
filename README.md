@@ -1,5 +1,7 @@
 # dsh-linux-app
 
+[![ci](https://github.com/jt-at-home/dsh-linux-app/actions/workflows/ci.yml/badge.svg)](https://github.com/jt-at-home/dsh-linux-app/actions/workflows/ci.yml)
+
 A dedicated Linux desktop app for the
 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) Web UI. An
 Electron shell starts its own `dsh web` host, shows the UI in a real application
