@@ -12,6 +12,27 @@ than another browser tab.
 > "DeepSeek Harness" and the DeepSeek name and marks belong to DeepSeek. The
 > whale icon is derived from the DSH web frontend artwork.
 
+## Why?
+
+DeepSeek ships the Harness as a local web app and an official desktop shell for
+Windows and macOS; there is no Linux build of that desktop app. The community
+alternatives we looked at take the heavier route: they port the official
+packaging pipeline or fork the harness, bundling a Node/pnpm/Python runtime and
+carrying a large patch set that must be rebased for every upstream release.
+
+This project deliberately takes the lighter path: an Electron shell around the
+**unmodified `dsh web` host**. It adds only what makes the harness feel like an
+app — a real window, tray, hide-on-close, remembered geometry, native menus and
+a crash-safe host lifecycle — while leaving the harness itself alone. Profiles,
+plugins, sessions, credentials and configuration stay in `~/.dsh`, exactly as
+with the CLI or a browser; harness updates come from updating `dsh`, not from
+this app, and no harness source is patched.
+
+The trade-off is explicit: the packages do not bundle a runtime, so Node and
+`dsh` (plus `pnpm` for plugins) must already be installed. In exchange the app
+stays small — a single Electron shell you can read end to end — instead of a
+hundreds-of-megabytes runtime copy with a fork to maintain.
+
 ## Features
 
 - Dedicated window with tray; closing hides to the tray when the desktop
