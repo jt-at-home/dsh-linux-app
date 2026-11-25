@@ -33,6 +33,8 @@ The trade-off is explicit: the packages do not bundle a runtime, so Node and
 stays small — a single Electron shell you can read end to end — instead of a
 hundreds-of-megabytes runtime copy with a fork to maintain.
 
+![The app window on first launch, with the one-time Preview Notice](docs/screenshot.png)
+
 ## Features
 
 - Dedicated window with tray; closing hides to the tray when the desktop
