@@ -1,7 +1,7 @@
 {
   "name": "dsh-linux-app",
   "productName": "DeepSeek Harness",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "private": true,
   "description": "Unofficial Linux desktop app for the DeepSeek Harness Web UI",
   "type": "module",
@@ -11,7 +11,7 @@
     "start": "electron .",
     "smoke": "bash scripts/smoke.sh",
     "test:config": "node scripts/test-config.mjs",
-    "test": "npm run test:config && npm run test:icons && npm run test:log && npm run test:resolve && npm run test:context-menu && npm run test:env && npm run test:hidden && npm run smoke && npm run smoke:menu && npm run smoke:error && npm run test:signals && npm run test:kill",
+    "test": "npm run test:config && npm run test:icons && npm run test:log && npm run test:resolve && npm run test:close && npm run test:context-menu && npm run test:env && npm run test:hidden && npm run smoke && npm run smoke:menu && npm run smoke:error && npm run test:signals && npm run test:kill",
     "install:desktop": "bash scripts/install-desktop.sh",
     "smoke:error": "bash scripts/smoke-error.sh",
     "test:signals": "bash scripts/test-signals.sh",
@@ -27,7 +27,8 @@
     "package": "electron-builder --linux --publish never",
     "package:dir": "electron-builder --linux dir --publish never",
     "smoke:packaged": "bash scripts/smoke-packaged.sh",
-    "test:context-menu": "node scripts/test-context-menu.mjs"
+    "test:context-menu": "node scripts/test-context-menu.mjs",
+    "test:close": "node scripts/test-close.mjs"
   },
   "devDependencies": {
     "electron": "^44.11.6",

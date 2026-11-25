@@ -52,6 +52,7 @@ fi
 echo "smoke-packaged: testing $candidate"
 mkdir -p "$tmp/home" "$tmp/state" "$tmp/config" "$tmp/user-data"
 
+export DSH_LINUX_APP_TRAY_HOST=1
 export DSH_HOME="$tmp/home"
 export DSH_LINUX_APP_STATE_DIR="$tmp/state"
 export DSH_LINUX_APP_CONFIG_DIR="$tmp/config"

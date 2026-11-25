@@ -270,6 +270,10 @@ export class AppWindow {
     if (!this.win.isDestroyed()) this.win.hide()
   }
 
+  minimize() {
+    if (!this.win.isDestroyed() && !this.win.isMinimized()) this.win.minimize()
+  }
+
   isVisible() {
     return !this.win.isDestroyed() && this.win.isVisible()
   }

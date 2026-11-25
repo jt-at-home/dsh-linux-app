@@ -14,7 +14,8 @@ than another browser tab.
 
 ## Features
 
-- Dedicated window with tray, hide-on-close, and single-instance focus
+- Dedicated window with tray; closing hides to the tray when the desktop
+  provides one, and minimizes otherwise so it can always be restored
 - Owns the host: starts `dsh web --profile web --port 0 --no-open`, reads the
   tokenized URL from stdout, and stops the host on quit
 - Crash-safe supervision: if the app dies — even via SIGKILL — the host is
@@ -281,7 +282,7 @@ defaults are used.
 | `appMenuButton` | `true` | The in-window **⋯** app-menu button |
 | `trayIcon` | `auto` | `auto`, `light` or `dark` tray variant |
 | `zoom` | `1` | UI zoom factor, 0.5–3 |
-| `closeToTray` | `true` | Closing the window hides it instead of quitting |
+| `closeToTray` | `true` | Hide to tray when available, otherwise minimize (never quits) |
 | `tray` | `true` | Create the tray icon when the desktop supports one |
 | `dshPath` / `nodePath` | `null` | Explicit launchers; otherwise auto-resolved |
 | `workingDirectory` | `null` | Host working directory; defaults to `$HOME` |
@@ -310,10 +311,11 @@ Environment overrides: `DSH_LINUX_APP_DSH`, `DSH_LINUX_APP_NODE`,
 - **AppImage: `error loading libfuse.so.2`.** Install `libfuse2` (Zorin 17 /
   Ubuntu 22.04) or `libfuse2t64` (Zorin 18 / Ubuntu 24.04), or run with
   `APPIMAGE_EXTRACT_AND_RUN=1`.
-- **Closing the window and nothing on screen.** That is hide-to-tray. Reopen from
-  the tray menu, or launch the app again. GNOME needs
-  `gnome-shell-extension-appindicator` for a tray; without a tray host the second
-  launch is the way back.
+- **No tray icon.** GNOME needs the `gnome-shell-extension-appindicator`
+  extension. The app only hides to the tray when a StatusNotifier host is
+  present; without one, closing **minimizes** the window (dock/overview) instead,
+  and a second launch focuses it. It also retries tray creation for the first
+  minute, so an icon can appear once the panel finishes starting.
 - **A second launch does nothing.** The single-instance lock focused the existing
   window; check `pgrep -af dsh-linux-app`.
 - **Plugin Market says "pnpm needs to be set up"** — see

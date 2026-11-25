@@ -10,6 +10,7 @@ cleanup() { rm -rf "$tmp"; }
 trap cleanup EXIT
 
 export DSH_LINUX_APP_SMOKE=1
+export DSH_LINUX_APP_TRAY_HOST=1
 export DSH_LINUX_APP_SMOKE_ERROR=1
 export DSH_LINUX_APP_DSH="$tmp/does-not-exist"
 export DSH_HOME="$tmp/home"

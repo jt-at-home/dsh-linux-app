@@ -8,6 +8,8 @@ import { AppWindow, APP_PARTITION } from './window.js'
 import { loadConfig, saveConfig, configPath } from './config.js'
 import { createAppMenu, installMenu } from './menu.js'
 import { createTray } from './tray.js'
+import { trayHostAvailable } from './tray-host.js'
+import { closeDecision } from './close-decision.js'
 import { log, logPaths } from './log.js'
 
 const smoke = process.env.DSH_LINUX_APP_SMOKE === '1'
@@ -196,17 +198,28 @@ async function showAbout() {
 function installWindowBehaviour() {
   appWindow.win.on('close', event => {
     if (quitting) return
-    if (!config.closeToTray) return
+    const action = closeDecision({
+      closeToTray: config.closeToTray,
+      hasTray: tray !== null,
+      trayHost: trayHostAvailable(),
+    })
+    if (action === 'close') return
     event.preventDefault()
     appWindow.flushBounds()
     saveConfig(config)
-    appWindow.hide()
-    log('window: close intercepted (hidden to tray)')
+    if (action === 'hide') {
+      appWindow.hide()
+      log('window: close intercepted (hidden to tray)')
+    } else {
+      appWindow.minimize()
+      log('window: close minimized (no tray host or no tray)')
+    }
   })
 }
 
 function ensureTray() {
   if (tray !== null || config.tray === false) return tray
+  if (!trayHostAvailable()) return null
   tray = createTray({
     iconPaths: trayIconPaths,
     mode: config.trayIcon,
@@ -221,7 +234,7 @@ function ensureTray() {
 /** A login launch can race the panel: keep the window hidden while retrying. */
 function waitForTray() {
   if (quitting || tray !== null) return
-  if (trayRetry >= 5) {
+  if (trayRetry >= 10) {
     log('app: no tray host after retries; showing the window')
     appWindow.show()
     return
@@ -233,6 +246,21 @@ function waitForTray() {
     if (tray !== null) log('app: tray became available; staying hidden')
     else waitForTray()
   }, 2000)
+}
+
+/** A visible launch may start before the panel; keep trying for a host. */
+function probeTray(attempt = 0) {
+  if (quitting || tray !== null || config.tray === false) return
+  if (attempt >= 30) {
+    log('tray: no StatusNotifier host after 60s; close will minimize')
+    return
+  }
+  setTimeout(() => {
+    if (quitting || tray !== null) return
+    ensureTray()
+    if (tray !== null) log('tray: host appeared; icon created')
+    else probeTray(attempt + 1)
+  }, 2000).unref?.()
 }
 
 async function main() {
@@ -313,6 +341,7 @@ async function main() {
   installWindowBehaviour()
 
   ensureTray()
+  if (tray === null) probeTray()
 
   for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
     process.on(signal, () => {
