@@ -1,7 +1,7 @@
 {
   "name": "dsh-linux-app",
   "productName": "DeepSeek Harness",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "private": true,
   "description": "Unofficial Linux desktop app for the DeepSeek Harness Web UI",
   "type": "module",

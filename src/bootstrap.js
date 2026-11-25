@@ -152,6 +152,8 @@ async function requestQuit() {
     noLink: true,
   }
   const owner = appWindow !== undefined && !appWindow.win.isDestroyed() ? appWindow.win : undefined
+  // A dialog parented to a hidden window may never be shown (tray quit).
+  if (owner !== undefined && !owner.isVisible()) appWindow.show()
   const { response } = owner === undefined
     ? await dialog.showMessageBox(options)
     : await dialog.showMessageBox(owner, options)
@@ -257,7 +259,7 @@ function ensureTray() {
     onOpen: () => appWindow.show(),
     onHide: () => appWindow.hide(),
     onRestart: () => void requestRestart(),
-    onQuit: () => void shutdown(0),
+    onQuit: () => void requestQuit(),
   })
   return tray
 }
@@ -302,7 +304,9 @@ async function main() {
   app.on('window-all-closed', () => {
     if (quitting) return
     if (config?.closeToTray === true) return
-    void requestQuit()
+    // closeToTray is off: the user asked for close to quit; there is no window
+    // left to parent a confirmation to.
+    void shutdown(0)
   })
 
   app.on('before-quit', event => {
