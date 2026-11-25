@@ -78,6 +78,13 @@ npm install -g @deepseek-ai/dsh@latest
 dsh --version
 ```
 
+npm 11+ blocks lifecycle scripts by default and will warn that `node-pty`,
+`koffi` and similar packages were not prepared. Re-run with the exact
+`--allow-scripts=…` command npm prints (for 0.2.2-rc.5:
+`--allow-scripts=@deepseek-ai/dsh-subprocess-local,koffi,node-pty,protobufjs`),
+or set it once with `npm config set allow-scripts=… --location=user`. Without
+that, native pieces such as the terminal can be missing.
+
 Then confirm the app will find the same pair:
 
 ```bash
@@ -134,8 +141,10 @@ resolves `dsh` and its Node explicitly.
    [Releases](https://github.com/jt-at-home/dsh-linux-app/releases), then verify
    the download:
    ```bash
-   sha256sum -c SHA256SUMS
+   sha256sum -c --ignore-missing SHA256SUMS
    ```
+   `--ignore-missing` verifies whichever release assets you downloaded; the
+   checksum file lists every asset.
 3. Make it executable:
    ```bash
    chmod +x DeepSeek-Harness-<version>-x86_64.AppImage
@@ -163,7 +172,7 @@ prompt on first launch.
 
 1. Complete the [prerequisites](#prerequisites-both-formats) above.
 2. Download `dsh-linux-app_<version>_amd64.deb` and `SHA256SUMS`, verify with
-   `sha256sum -c SHA256SUMS`, then install:
+   `sha256sum -c --ignore-missing SHA256SUMS`, then install:
    ```bash
    sudo apt install ./dsh-linux-app_<version>_amd64.deb
    ```
