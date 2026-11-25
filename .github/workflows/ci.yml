@@ -36,6 +36,8 @@ jobs:
             libgtk-3-0 libnss3 libxss1 libxtst6 libatspi2.0-0 \
             libuuid1 libsecret-1-0 libnotify4 libgbm1 libasound2t64 xdg-utils
       - run: npm ci
+      - name: Install the Electron binary
+        run: node node_modules/electron/install.js
       - name: Install dsh
         run: npm install -g @deepseek-ai/dsh@0.2.2-rc.5
       - name: Run test suite
