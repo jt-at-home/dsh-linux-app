@@ -19,8 +19,10 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
-      # CI runners cannot rely on the setuid sandbox; the app appends
-      # --no-sandbox through this variable.
+      # CI runners cannot rely on the setuid sandbox. Electron reads this
+      # before the main process starts; the app's own switch is too late for
+      # sandbox initialization.
+      ELECTRON_DISABLE_SANDBOX: '1'
       DSH_LINUX_APP_NO_SANDBOX: '1'
     steps:
       - uses: actions/checkout@v4
