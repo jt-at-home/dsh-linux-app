@@ -1,0 +1,101 @@
+{
+  "name": "dsh-linux-app",
+  "productName": "DeepSeek Harness",
+  "version": "0.6.2",
+  "private": true,
+  "description": "Unofficial Linux desktop app for the DeepSeek Harness Web UI",
+  "type": "module",
+  "main": "src/bootstrap.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "smoke": "bash scripts/smoke.sh",
+    "test:config": "node scripts/test-config.mjs",
+    "test": "npm run test:config && npm run test:icons && npm run test:log && npm run test:resolve && npm run test:context-menu && npm run test:env && npm run test:hidden && npm run smoke && npm run smoke:menu && npm run smoke:error && npm run test:signals && npm run test:kill",
+    "install:desktop": "bash scripts/install-desktop.sh",
+    "smoke:error": "bash scripts/smoke-error.sh",
+    "test:signals": "bash scripts/test-signals.sh",
+    "test:kill": "bash scripts/test-kill.sh",
+    "test:log": "node scripts/test-log.mjs",
+    "smoke:menu": "bash scripts/smoke-menu.sh",
+    "test:resolve": "node scripts/test-resolve.mjs",
+    "test:env": "bash scripts/test-env.sh",
+    "test:icons": "bash scripts/test-icons.sh",
+    "make-icons": "bash scripts/make-icons.sh",
+    "test:hidden": "bash scripts/test-hidden.sh",
+    "install:autostart": "bash scripts/install-autostart.sh",
+    "package": "electron-builder --linux --publish never",
+    "package:dir": "electron-builder --linux dir --publish never",
+    "smoke:packaged": "bash scripts/smoke-packaged.sh",
+    "test:context-menu": "node scripts/test-context-menu.mjs"
+  },
+  "devDependencies": {
+    "electron": "^44.11.6",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "com.dshlinux.app",
+    "productName": "DeepSeek Harness",
+    "executableName": "dsh-linux-app",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "asar": true,
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Development",
+      "icon": "build/icons",
+      "synopsis": "Dedicated Linux app for the DeepSeek Harness Web UI",
+      "description": "Starts its own dsh web host and shows the DeepSeek Harness UI in a dedicated window, with tray, hide-on-close and a restartable host. Requires dsh and Node to be installed.",
+      "desktop": {
+        "entry": {
+          "Name": "DeepSeek Harness",
+          "Comment": "DeepSeek Harness Web UI in a dedicated window",
+          "Categories": "Development;Utility;",
+          "StartupWMClass": "deepseek-harness",
+          "StartupNotify": "true"
+        }
+      },
+      "syncDesktopName": true
+    },
+    "appImage": {
+      "artifactName": "DeepSeek-Harness-${version}-${arch}.AppImage"
+    },
+    "asarUnpack": [
+      "src/host-supervisor.mjs"
+    ],
+    "afterPack": "scripts/after-pack.cjs"
+  },
+  "author": {
+    "name": "jt-at-home",
+    "email": "246660215+jt-at-home@users.noreply.github.com"
+  },
+  "homepage": "https://github.com/jt-at-home/dsh-linux-app",
+  "desktopName": "deepseek-harness",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jt-at-home/dsh-linux-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jt-at-home/dsh-linux-app/issues"
+  },
+  "keywords": [
+    "deepseek",
+    "deepseek-harness",
+    "dsh",
+    "electron",
+    "linux",
+    "desktop",
+    "appimage",
+    "deb"
+  ]
+}

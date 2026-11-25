@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Launch the app from anywhere (including a .desktop entry, which does not read
+# shell startup files).
+set -euo pipefail
+
+self="$(readlink -f "${BASH_SOURCE[0]}")"
+here="$(cd "$(dirname "$self")/.." && pwd)"
+
+if [[ ! -x "$here/node_modules/.bin/electron" ]]; then
+  echo "dsh-linux-app: dependencies are missing; run: (cd \"$here\" && npm install)" >&2
+  exit 1
+fi
+
+exec "$here/node_modules/.bin/electron" "$here" "$@"

@@ -1,0 +1,15 @@
+node_modules/
+.npm-cache/
+.cache/
+dist/
+out/
+release/
+*.AppImage
+*.deb
+*.rpm
+*.zip
+*.log
+.DS_Store
+
+# Private planning/history, never published
+.planning/
