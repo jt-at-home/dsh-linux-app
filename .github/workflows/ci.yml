@@ -1,0 +1,42 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      # CI runners cannot rely on the setuid sandbox; the app appends
+      # --no-sandbox through this variable.
+      DSH_LINUX_APP_NO_SANDBOX: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            xvfb imagemagick \
+            libgtk-3-0 libnss3 libxss1 libxtst6 libatspi2.0-0 \
+            libuuid1 libsecret-1-0 libnotify4 libgbm1 libasound2t64 xdg-utils
+      - run: npm ci
+      - name: Install dsh
+        run: npm install -g @deepseek-ai/dsh@0.2.2-rc.5
+      - name: Run test suite
+        run: xvfb-run -a -s "-screen 0 1440x1000x24" npm test
