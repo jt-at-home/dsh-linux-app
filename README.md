@@ -12,6 +12,24 @@ than another browser tab.
 > "DeepSeek Harness" and the DeepSeek name and marks belong to DeepSeek. The
 > whale icon is derived from the DSH web frontend artwork.
 
+## Contents
+
+- [Why?](#why)
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Install: AppImage](#install-appimage)
+- [Install: deb](#install-deb)
+- [Run from source](#run-from-source)
+- [Enable login start](#enable-login-start)
+- [Plugins and pnpm](#plugins-and-pnpm)
+- [Configuration](#configuration)
+- [Troubleshooting](#troubleshooting)
+- [Build packages](#build-packages)
+- [Icons](#icons)
+- [Project layout](#project-layout)
+- [Non-goals](#non-goals)
+- [License](#license)
+
 ## Why?
 
 DeepSeek ships the Harness as a local web app and an official desktop shell for
@@ -39,8 +57,9 @@ hundreds-of-megabytes runtime copy with a fork to maintain.
 
 - Dedicated window with tray; closing hides to the tray when the desktop
   provides one, and minimizes otherwise so it can always be restored
-- Owns the host: starts `dsh web --profile web --port 0 --no-open`, reads the
-  tokenized URL from stdout, and stops the host on quit
+- Owns the host: starts `dsh --profile web --port 0 --no-open` (`web` is dsh's
+  default subcommand), reads the tokenized URL from stdout, and stops the host on
+  quit
 - Crash-safe supervision: if the app dies — even via SIGKILL — the host is
   stopped, so no orphan keeps listening on a port
 - Native right-click menu: Undo/Redo, Cut/Copy/Paste, Select All, Copy Image,
@@ -52,10 +71,11 @@ hundreds-of-megabytes runtime copy with a fork to maintain.
 - Logs rotate at 1 MiB
 - AppImage and deb packaging
 
-## Prerequisites (both formats)
+## Prerequisites
 
-The app is only the desktop shell: it does **not** bundle Node, `dsh` or `pnpm`.
-Install these first, as the same user that will run the app.
+Both install formats below need these. The app is only the desktop shell: it does
+**not** bundle Node, `dsh` or `pnpm`. Install them first, as the same user that
+will run the app.
 
 ### 1. Node.js 24
 
@@ -103,11 +123,10 @@ dsh --version
 ```
 
 npm 11+ blocks lifecycle scripts by default and will warn that `node-pty`,
-`koffi` and similar packages were not prepared. Re-run with the exact
-`--allow-scripts=…` command npm prints (for 0.2.2-rc.5:
-`--allow-scripts=@deepseek-ai/dsh-subprocess-local,koffi,node-pty,protobufjs`),
-or set it once with `npm config set allow-scripts=… --location=user`. Without
-that, native pieces such as the terminal can be missing.
+`koffi` and similar packages were not prepared. Re-run the install with the exact
+`--allow-scripts=…` argument npm prints, or set it once with
+`npm config set allow-scripts=… --location=user`. Without that, native pieces
+such as the terminal can be missing.
 
 Then confirm the app will find the same pair:
 
@@ -127,7 +146,7 @@ If npm refuses with an engine error, you are still on Node 18 — go back to ste
 ```bash
 npm config set prefix "$HOME/.local"
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
-npm install -g @deepseek-ai/dsh
+npm install -g @deepseek-ai/dsh@latest
 command -v dsh    # ~/.local/bin/dsh
 ```
 
@@ -160,7 +179,7 @@ resolves `dsh` and its Node explicitly.
 
 ## Install: AppImage
 
-1. Complete the [prerequisites](#prerequisites-both-formats) above.
+1. Complete the [prerequisites](#prerequisites) above.
 2. Download `DeepSeek-Harness-<version>-x86_64.AppImage` and `SHA256SUMS` from
    [Releases](https://github.com/jt-at-home/dsh-linux-app/releases), then verify
    the download:
@@ -194,26 +213,50 @@ prompt on first launch.
 
 ## Install: deb
 
-1. Complete the [prerequisites](#prerequisites-both-formats) above.
-2. Download `dsh-linux-app_<version>_amd64.deb` and `SHA256SUMS`, verify with
-   `sha256sum -c --ignore-missing SHA256SUMS`, then install:
+1. Complete the [prerequisites](#prerequisites) above.
+2. Download `dsh-linux-app_<version>_amd64.deb` and `SHA256SUMS` from
+   [Releases](https://github.com/jt-at-home/dsh-linux-app/releases), then verify
+   the download:
+   ```bash
+   sha256sum -c --ignore-missing SHA256SUMS
+   ```
+   `--ignore-missing` verifies whichever release assets you downloaded; the
+   checksum file lists every asset.
+3. Install it (this also resolves the GUI libraries):
    ```bash
    sudo apt install ./dsh-linux-app_<version>_amd64.deb
    ```
-   `apt` resolves the GUI libraries; Node, `dsh` and `pnpm` are still required
-   from the prerequisites and are not bundled.
-3. The package installs:
+   Node, `dsh` and `pnpm` are still required from the prerequisites and are not
+   bundled.
+4. The package installs:
    - `/opt/DeepSeek Harness/` — application and Electron runtime
-   - `/usr/bin/dsh-linux-app` — command (via update-alternatives)
+   - `/usr/bin/dsh-linux-app` — command (symlink installed by the package)
    - a **DeepSeek Harness** entry in the application menu
-4. Launch it from the menu, or run `dsh-linux-app`.
-5. Uninstall with `sudo apt remove dsh-linux-app`. Your data in `~/.dsh` and
+5. Launch it from the menu, or run `dsh-linux-app`.
+6. Uninstall with `sudo apt remove dsh-linux-app`. Your data in `~/.dsh` and
    `~/.config/dsh-linux-app` is left untouched.
+
+## Run from source
+
+Install the [prerequisites](#prerequisites) first.
+
+```bash
+npm install
+npm start          # real ~/.dsh, real window
+npm test           # full suite; needs a display, dsh and ImageMagick
+
+npm run install:desktop    # launcher in ~/.local/bin + menu entry
+npm run install:autostart  # start hidden in the tray at login
+```
+
+`--hidden` starts the app in the tray without showing the window. If no tray host
+appears, it retries for about twenty seconds while the panel starts and then
+shows the window so the app cannot become unreachable.
 
 ## Enable login start
 
-Both formats can start hidden in the tray. Create
-`~/.config/autostart/dsh-linux-app.desktop`:
+Every install can start hidden in the tray. From source, `npm run install:autostart`
+writes this entry for you; otherwise create `~/.config/autostart/dsh-linux-app.desktop`:
 
 ```ini
 [Desktop Entry]
@@ -226,27 +269,12 @@ Terminal=false
 X-GNOME-Autostart-enabled=true
 ```
 
-For an AppImage, replace `Exec` with the AppImage path followed by `--hidden`.
-GNOME (Zorin) needs the `gnome-shell-extension-appindicator` extension for the
-tray; without a tray the hidden start falls back to showing the window after
-about ten seconds, so the app cannot become unreachable.
-
-## Run from source
-
-Install the [prerequisites](#prerequisites-both-formats) first.
-
-```bash
-npm install
-npm start          # real ~/.dsh, real window
-npm test           # full suite; needs a display, dsh and ImageMagick
-
-npm run install:desktop    # launcher in ~/.local/bin + menu entry
-npm run install:autostart  # start hidden in the tray at login
-```
-
-`--hidden` starts the app in the tray without showing the window. If no tray host
-appears, it retries for about ten seconds while the panel starts and then shows
-the window so the app cannot become unreachable.
+For an AppImage, replace `Exec` with the AppImage path followed by `--hidden`, and
+point `Icon` at the extracted icon (or a path to `assets/icon.png`), since no icon
+is installed system-wide. GNOME (Zorin) needs the
+`gnome-shell-extension-appindicator` extension for the tray; without a tray the
+hidden start falls back to showing the window after about twenty seconds, so the
+app cannot become unreachable.
 
 ## Plugins and pnpm
 
@@ -255,7 +283,7 @@ Plugin installs and updates are the one feature that needs software beyond `dsh`
 (`~/.dsh/profiles/web`) and call `pnpm` directly. The app does not bundle pnpm.
 
 Install pnpm with `npm install -g pnpm@12` (step 3 of the
-[prerequisites](#prerequisites-both-formats)); pnpm 12 is the supported line.
+[prerequisites](#prerequisites)); pnpm 12 is the supported line.
 Verify the setup with:
 
 ```bash
@@ -267,14 +295,14 @@ pnpm -C ~/.dsh/profiles/web list --depth 0      # lists profile dependencies
 
 A corepack shim counts as an existing executable but fails `pnpm --version` when
 it cannot download pnpm (for example an HTTP 429 from the registry). Since the
-shim occupies the name, `npm i -g pnpm` refuses to overwrite it. Either:
+shim occupies the name, `npm install -g pnpm` refuses to overwrite it. Either:
 
 ```bash
 # activate the shim already there
 corepack prepare pnpm@latest --activate
 
 # or replace the shim with a real global install
-npm i -g pnpm@12 --force
+npm install -g pnpm@12 --force
 ```
 
 Then reload the UI (`Ctrl+R`) or use **⋯ → Restart Host** — the setup check is
@@ -285,7 +313,7 @@ cached per host process.
 - **Plugins:** the Plugin Market / `dsh plugin` installs through pnpm into
   `~/.dsh/profiles/web`. Reload the UI afterwards; some plugins need a host
   restart.
-- **Harness (`dsh`):** `npm i -g @deepseek-ai/dsh@latest`, then
+- **Harness (`dsh`):** `npm install -g @deepseek-ai/dsh@latest`, then
   **⋯ → Restart Host**.
 - The two are independent: updating `dsh` does not update plugins, and plugin
   updates do not change `dsh`.
@@ -312,9 +340,18 @@ defaults are used.
 | `workingDirectory` | `null` | Host working directory; defaults to `$HOME` |
 | `hostTimeoutMs` | `120000` | Startup deadline before the error page appears |
 
-Environment overrides: `DSH_LINUX_APP_DSH`, `DSH_LINUX_APP_NODE`,
-`DSH_LINUX_APP_CWD`, `DSH_LINUX_APP_CONFIG_DIR`, `DSH_LINUX_APP_STATE_DIR`,
-`DSH_LINUX_APP_USER_DATA`, `DSH_LINUX_APP_NO_SANDBOX`.
+Environment overrides take precedence over the config file:
+
+| Variable | Purpose |
+|---|---|
+| `DSH_LINUX_APP_DSH` | Path to the `dsh` executable (overrides `dshPath`) |
+| `DSH_LINUX_APP_NODE` | Path to the Node executable (overrides `nodePath`) |
+| `DSH_LINUX_APP_CWD` | Host working directory (overrides `workingDirectory`) |
+| `DSH_LINUX_APP_CONFIG_DIR` | Config directory (default `$XDG_CONFIG_HOME/dsh-linux-app`) |
+| `DSH_LINUX_APP_STATE_DIR` | Log/state directory (default `$XDG_STATE_HOME/dsh-linux-app`) |
+| `DSH_LINUX_APP_USER_DATA` | Electron user-data directory |
+| `DSH_LINUX_APP_NO_SANDBOX` | Set to `1` to launch Chromium with `--no-sandbox` |
+| `DSH_LINUX_APP_TRAY_HOST` | Set to `1`/`0` to force the tray-host probe (mainly for tests) |
 
 ## Troubleshooting
 
@@ -323,8 +360,8 @@ Environment overrides: `DSH_LINUX_APP_DSH`, `DSH_LINUX_APP_NODE`,
   `host: launching …`. A host failure opens the in-window error page with Retry.
 - **`Node X is too old for this dsh`.** You are on Node 18 (the distro package).
   Install Node 24 as described in
-  [Prerequisites](#prerequisites-both-formats); if several Node installations
-  coexist, pin `dshPath`/`nodePath` to the matching pair.
+  [Prerequisites](#prerequisites); if several Node installations coexist, pin
+  `dshPath`/`nodePath` to the matching pair.
 - **`npm install -g` asks for sudo / `EACCES`.** With nvm this must not happen;
   the shell is using a system npm. Open a new terminal or `nvm use 24` and check
   `command -v npm`. With NodeSource, `sudo` is expected (or set a user prefix as
@@ -340,13 +377,11 @@ Environment overrides: `DSH_LINUX_APP_DSH`, `DSH_LINUX_APP_NODE`,
   present; without one, closing **minimizes** the window (dock/overview) instead,
   and a second launch focuses it. It also retries tray creation for the first
   minute, so an icon can appear once the panel finishes starting.
-- **A second launch does nothing.** The single-instance lock focused the existing
-  window; check `pgrep -af dsh-linux-app`.
-- **No tray icon after relaunching.** An older instance is probably still running
-  and simply got focused — closing the window hides or minimizes, it does not
-  quit. Quit it fully from the tray or **⋯ → Quit**, confirm `pgrep -af
-  dsh-linux-app` is empty, then relaunch. A run started with
-  `DSH_LINUX_APP_TRAY_HOST=0` never creates a tray by design.
+- **A second launch does nothing / no tray icon after relaunching.** The
+  single-instance lock focused an older instance that is probably still running —
+  closing the window hides or minimizes, it does not quit. Quit it fully from the
+  tray or **⋯ → Quit**, confirm `pgrep -af dsh-linux-app` is empty, then relaunch.
+  A run started with `DSH_LINUX_APP_TRAY_HOST=0` never creates a tray by design.
 - **Plugin Market says "pnpm needs to be set up"** — see
   [Plugins and pnpm](#plugins-and-pnpm).
 - **`crypto/nss_util.cc … NSS error code`** is Chromium complaining about
@@ -363,8 +398,9 @@ npm run package        # AppImage + deb in dist/
 npm run smoke:packaged # run the newest build with an isolated home
 ```
 
-`electron-builder` needs Node 22+ to build. Artifacts are ~120 MB (AppImage) and
-~95 MB (deb) because Chromium travels with the app.
+Building uses the same Node 24 from the prerequisites (`electron-builder` requires
+22+). Artifacts are ~120 MB (AppImage) and ~95 MB (deb) because Chromium travels
+with the app.
 
 ## Icons
 
@@ -408,7 +444,8 @@ npm run make-icons   # requires ImageMagick
 
 ## Non-goals
 
-- Bundled Node/pnpm/Python runtime and `workspace-dependencies`
+- Bundled Node/pnpm/Python runtime, or provisioning the harness's workspace
+  dependencies
 - Auto-update, `dsh-app://`, `dsh://` protocol handler
 - The reserved `profiles/desktop` profile, frameless/glass chrome
 - Replacing the official Desktop on Windows/macOS
